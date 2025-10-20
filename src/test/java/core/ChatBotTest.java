@@ -1,7 +1,7 @@
 package core;
 
-import interfaces.IMessenger;
-import interfaces.IQuestionRepository;
+import interfaces.Messenger;
+import interfaces.QuestionRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,7 +19,7 @@ class ChatBotTest {
     private FakeQuestionRepository fakeRepository;
     private ChatBot bot;
 
-    static class FakeMessenger implements IMessenger {
+    static class FakeMessenger implements Messenger {
         private final Queue<String> userInputs = new LinkedList<>();
         private final List<String> sentMessages = new ArrayList<>();
 
@@ -42,10 +42,8 @@ class ChatBotTest {
         }
     }
 
-    static class FakeQuestionRepository implements IQuestionRepository {
-        private final Queue<String> questions = new LinkedList<>();
-        private final Queue<String> correctAnswers = new LinkedList<>();
-        private String currentCorrectAnswer;
+    static class FakeQuestionRepository implements QuestionRepository {
+        private final Queue<Question> questions = new LinkedList<>();
 
         @Override
         public boolean hasMoreQuestions() {
@@ -53,19 +51,12 @@ class ChatBotTest {
         }
 
         @Override
-        public String getQuestion() {
-            currentCorrectAnswer = correctAnswers.poll();
+        public Question getQuestion() {
             return questions.poll();
         }
 
-        @Override
-        public boolean checkAnswer(String userAnswer) {
-            return userAnswer.equalsIgnoreCase(currentCorrectAnswer);
-        }
-
-        public void addQuestion(String question, String correctAnswer) {
-            questions.add(question);
-            correctAnswers.add(correctAnswer);
+        public void addQuestion(String questionText, String correctAnswer) {
+            questions.add(new Question(questionText, correctAnswer));
         }
     }
 
@@ -78,36 +69,32 @@ class ChatBotTest {
     }
 
     @Test
-    @DisplayName("Бот должен отправить приветственные и прощальное сообщения на старте, если нет вопросов")
-    void start_ShouldSendWelcomeAndGoodbyeMessagesIfNoQuestions() {
-
+    @DisplayName("Бот должен отправить только приветственные сообщения, если нет вопросов")
+    void start_ShouldSendWelcomeMessagesIfNoQuestions() {
         bot.start();
 
         List<String> messages = fakeMessenger.getSentMessages();
-        assertEquals(4, messages.size());
+        assertEquals(3, messages.size());
         assertEquals("Привет! Я бот для игры в угадывание столицы", messages.get(0));
         assertEquals("Я буду называть случайную страну, а ты — её столицу.", messages.get(1));
         assertEquals("Для выхода в любой момент введите \\quit , для помощи \\help", messages.get(2));
-        assertEquals("Спасибо за игру!", messages.get(3));
     }
 
     @Test
-    @DisplayName("Бот должен корректно обработать один цикл игры с правильным ответом")
+    @DisplayName("Бот должен корректно обработать цикл с правильным ответом")
     void start_ShouldHandleOneCycleWithCorrectAnswer() {
         fakeRepository.addQuestion("Назовите столицу Франции", "Париж");
         fakeMessenger.addUserInput("Париж");
 
         bot.start();
 
-
         List<String> messages = fakeMessenger.getSentMessages();
         assertTrue(messages.contains("Назовите столицу Франции"), "Бот должен был задать вопрос.");
         assertTrue(messages.contains("Верно!"), "Бот должен был сообщить о верном ответе.");
-        assertTrue(messages.contains("Спасибо за игру!"), "Бот должен был попрощаться в конце.");
     }
 
     @Test
-    @DisplayName("Бот должен корректно обработать один цикл игры с неправильным ответом")
+    @DisplayName("Бот должен корректно обработать цикл с неправильным ответом")
     void start_ShouldHandleOneCycleWithIncorrectAnswer() {
         fakeRepository.addQuestion("Назовите столицу Японии", "Токио");
         fakeMessenger.addUserInput("Киото");
@@ -116,12 +103,12 @@ class ChatBotTest {
 
         List<String> messages = fakeMessenger.getSentMessages();
         assertTrue(messages.contains("Назовите столицу Японии"));
-        assertTrue(messages.contains("Неверно!."));
+        assertTrue(messages.contains("Неверно! Правильный ответ: Токио"));
         assertFalse(messages.contains("Верно!"), "Сообщения о верном ответе быть не должно.");
     }
 
     @Test
-    @DisplayName("Бот должен завершать работу по команде \\quit")
+    @DisplayName("Бот должен завершать работу и прощаться по команде \\quit")
     void start_ShouldStopOnQuitCommand() {
         fakeRepository.addQuestion("Вопрос 1", "Ответ 1");
         fakeMessenger.addUserInput("\\quit");
@@ -130,22 +117,24 @@ class ChatBotTest {
 
         List<String> messages = fakeMessenger.getSentMessages();
         assertTrue(messages.contains("Вопрос 1"));
-        assertFalse(messages.contains("Верно!"));
-        assertFalse(messages.contains("Неверно!."));
         assertEquals("Спасибо за игру!", messages.get(messages.size() - 1));
+        assertFalse(messages.stream().anyMatch(msg -> msg.startsWith("Верно") || msg.startsWith("Неверно")));
     }
 
     @Test
-    @DisplayName("Бот должен выводить помощь по команде \\help")
-    void start_ShouldShowHelpOnHelpCommand() {
+    @DisplayName("Бот должен выводить помощь по команде \\help и продолжать игру")
+    void start_ShouldShowHelpOnHelpCommandAndContinue() {
         fakeRepository.addQuestion("Вопрос 1", "Ответ 1");
+        fakeRepository.addQuestion("Вопрос 2", "Ответ 2");
         fakeMessenger.addUserInput("\\help");
+        fakeMessenger.addUserInput("Ответ 1");
 
         bot.start();
 
         List<String> messages = fakeMessenger.getSentMessages();
-        assertTrue(messages.contains("Help"), "Бот должен был показать сообщение помощи.");
-        assertFalse(messages.contains("Верно!"), "Не должно быть реакции на ответ.");
-        assertFalse(messages.contains("Неверно!."), "Не должно быть реакции на ответ.");
+        assertTrue(messages.stream().anyMatch(msg -> msg.contains("Я задаю страну")), "Бот должен был показать сообщение помощи.");
+        assertEquals(2, messages.stream().filter(msg -> msg.equals("Вопрос 1")).count());
+        assertTrue(messages.contains("Верно!"), "Не было реакции на правильный ответ после \\help.");
+        assertTrue(messages.contains("Вопрос 2"), "Бот не задал следующий вопрос.");
     }
 }

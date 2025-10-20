@@ -1,5 +1,6 @@
 package implementations;
 
+import core.Question;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.RepeatedTest;
@@ -13,51 +14,43 @@ import static org.junit.jupiter.api.Assertions.*;
 class CapitalQuestionRepositoryTest {
 
     private CapitalQuestionRepository repository;
+    private Map<String, String> capitalsFromImplementation;
 
     @BeforeEach
-    void setUp() {
+    @SuppressWarnings("unchecked")
+    void setUp() throws NoSuchFieldException, IllegalAccessException {
         repository = new CapitalQuestionRepository();
+
+        Field capitalsField = CapitalQuestionRepository.class.getDeclaredField("capitals");
+        capitalsField.setAccessible(true);
+        capitalsFromImplementation = (Map<String, String>) capitalsField.get(repository);
     }
 
     @Test
     @DisplayName("hasMoreQuestions() всегда должен возвращать true")
     void hasMoreQuestions_ShouldAlwaysReturnTrue() {
-        assertTrue(repository.hasMoreQuestions());
+        assertTrue(repository.hasMoreQuestions(), "Метод hasMoreQuestions должен всегда возвращать true.");
     }
 
-    @Test
-    @DisplayName("getQuestion() должен возвращать вопрос в формате 'Назовите столицу страны: ...'")
-    void getQuestion_ShouldReturnFormattedQuestion() {
-        String question = repository.getQuestion();
+    @RepeatedTest(20)
+    @DisplayName("getQuestion() должен возвращать корректный объект Question")
+    void getQuestion_ShouldReturnCorrectQuestionObject() {
+        Question q = repository.getQuestion();
 
-        assertNotNull(question, "Вопрос не должен быть null.");
-        assertTrue(question.startsWith("Назовите столицу страны: "), "Формат вопроса некорректен.");
-    }
+        assertNotNull(q, "Объект Question не должен быть null.");
+        assertNotNull(q.getQuestionText(), "Текст вопроса не должен быть null.");
+        assertNotNull(q.getAnswer(), "Ответ не должен быть null.");
 
-    @Test
-    @DisplayName("checkAnswer() должен возвращать false, если вопрос еще не задавался")
-    void checkAnswer_ShouldReturnFalseIfQuestionWasNotAsked() {
-        assertFalse(repository.checkAnswer("Москва"), "Проверка ответа до задания вопроса должна возвращать false.");
-    }
-
-    @RepeatedTest(10)
-    @DisplayName("checkAnswer() должен возвращать true для правильного ответа и false для неправильного")
-    void checkAnswer_ShouldCorrectlyValidateAnswer() throws NoSuchFieldException, IllegalAccessException {
-        String question = repository.getQuestion();
+        String prefix = "Назовите столицу страны: ";
+        assertTrue(q.getQuestionText().startsWith(prefix), "Формат вопроса некорректен.");
 
 
-        Field currentCountryField = CapitalQuestionRepository.class.getDeclaredField("currentCountry");
-        currentCountryField.setAccessible(true);
-        String currentCountry = (String) currentCountryField.get(repository);
+        String country = q.getQuestionText().replace(prefix, "");
 
-        Field capitalsField = CapitalQuestionRepository.class.getDeclaredField("capitals");
-        capitalsField.setAccessible(true);
-        Map<String, String> capitals = (Map<String, String>) capitalsField.get(repository);
-        String correctAnswer = capitals.get(currentCountry);
+        assertTrue(capitalsFromImplementation.containsKey(country), "Сгенерирована неизвестная страна: " + country);
 
-        assertTrue(repository.checkAnswer(correctAnswer), "Правильный ответ должен быть принят.");
-        assertTrue(repository.checkAnswer(correctAnswer.toLowerCase()), "Ответ в нижнем регистре должен быть принят.");
-        assertTrue(repository.checkAnswer(correctAnswer.toUpperCase()), "Ответ в верхнем регистре должен быть принят.");
-        assertFalse(repository.checkAnswer("абсолютно неверный ответ"), "Неправильный ответ не должен быть принят.");
+        String expectedAnswer = capitalsFromImplementation.get(country);
+
+        assertEquals(expectedAnswer, q.getAnswer(), "Для страны '" + country + "' указан неверный ответ.");
     }
 }

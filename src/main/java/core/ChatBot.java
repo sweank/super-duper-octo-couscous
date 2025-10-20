@@ -1,45 +1,50 @@
 package core;
 
-import interfaces.IMessenger;
-import interfaces.IQuestionRepository;
-
+import interfaces.Messenger;
+import interfaces.QuestionRepository;
 
 public class ChatBot {
-    private final IQuestionRepository repository;
-    private final IMessenger messenger;
+    private final QuestionRepository repository;
+    private final Messenger messenger;
 
-    public ChatBot(IQuestionRepository repository, IMessenger messenger) {
+    public ChatBot(QuestionRepository repository, Messenger messenger) {
         this.repository = repository;
         this.messenger = messenger;
     }
-
 
     public void start() {
         messenger.sendMessage("Привет! Я бот для игры в угадывание столицы");
         messenger.sendMessage("Я буду называть случайную страну, а ты — её столицу.");
         messenger.sendMessage("Для выхода в любой момент введите \\quit , для помощи \\help");
-        loop:
+
         while (repository.hasMoreQuestions()) {
-            messenger.sendMessage(repository.getQuestion());
-            String userAnswer = messenger.receiveMessage();
-            switch (userAnswer) {
-                case "\\help":
-                    messenger.sendMessage("Help");
-                    break;
+            Question currentQuestion = repository.getQuestion();
 
-                case "\\quit":
-                    break loop;
+            while (true) {
+                messenger.sendMessage(currentQuestion.getQuestionText());
+                String userAnswer = messenger.receiveMessage();
 
-                default:
-                    if (repository.checkAnswer(userAnswer)) {
-                        messenger.sendMessage("Верно!");
-                    } else {
-                        messenger.sendMessage("Неверно!.");
-                    }
-                    break;
+                if ("\\help".equals(userAnswer)) {
+                    messenger.sendMessage(
+                            "Я задаю страну, а ты должен угадать её столицу.\n" +
+                                    "\\quit - выход из игры\n" +
+                                    "\\help - показать эту справку"
+                    );
+                    continue;
+                }
+
+                if ("\\quit".equals(userAnswer)) {
+                    messenger.sendMessage("Спасибо за игру!");
+                    return;
+                }
+
+                if (userAnswer != null && userAnswer.equalsIgnoreCase(currentQuestion.getAnswer())) {
+                    messenger.sendMessage("Верно!");
+                } else {
+                    messenger.sendMessage("Неверно! Правильный ответ: " + currentQuestion.getAnswer());
+                }
+                break;
             }
         }
-
-        messenger.sendMessage("Спасибо за игру!");
     }
 }
