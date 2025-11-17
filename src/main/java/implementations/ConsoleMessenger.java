@@ -1,11 +1,9 @@
 package implementations;
 
-import interfaces.Messenger;
-
+import interfaces.IMessenger;
 import java.util.Scanner;
 
-
-public class ConsoleMessenger implements Messenger {
+public class ConsoleMessenger implements IMessenger {
     private final Scanner scanner = new Scanner(System.in);
 
     @Override

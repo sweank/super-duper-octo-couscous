@@ -1,7 +1,6 @@
 package interfaces;
 
-
-public interface Messenger {
+public interface IMessenger {
     void sendMessage(String text);
     String receiveMessage();
 }
