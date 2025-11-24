@@ -3,10 +3,10 @@ package factory;
 import enums.MessengerType;
 import implementations.ConsoleMessenger;
 import implementations.TelegramMessenger;
-import interfaces.IMessenger;
+import interfaces.Messenger;
 
 public class MessengerFactory {
-    public static IMessenger createMessenger(MessengerType type, String... params) {
+    public static Messenger createMessenger(MessengerType type, String... params) {
         switch (type) {
             case TELEGRAM:
                 if (params.length >= 2) {

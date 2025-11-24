@@ -1,6 +1,6 @@
 package implementations;
 
-import interfaces.IMessenger;
+import interfaces.Messenger;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -9,8 +9,9 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-public class TelegramMessenger extends TelegramLongPollingBot implements IMessenger {
-    private final BlockingQueue<String> messageQueue = new LinkedBlockingQueue<>();
+public class TelegramMessenger extends TelegramLongPollingBot implements Messenger {
+    private static final int MAX_QUEUE_SIZE = 100;
+    private final BlockingQueue<String> messageQueue = new LinkedBlockingQueue<>(MAX_QUEUE_SIZE);
     private Long currentChatId;
     private String botUsername;
     private String botToken;
@@ -28,7 +29,24 @@ public class TelegramMessenger extends TelegramLongPollingBot implements IMessen
         if (update.hasMessage() && update.getMessage().hasText()) {
             currentChatId = update.getMessage().getChatId();
             String messageText = update.getMessage().getText();
-            messageQueue.offer(messageText);
+
+            try {
+                messageQueue.add(messageText);
+            } catch (IllegalStateException e) {
+                handleQueueOverflow(messageText);
+            }
+        }
+    }
+
+    private void handleQueueOverflow(String newMessage) {
+        System.err.println("Очередь сообщений переполнена. Очищаем и добавляем новое сообщение.");
+
+        messageQueue.clear();
+
+        try {
+            messageQueue.add(newMessage);
+        } catch (IllegalStateException e) {
+            System.err.println("Критическая ошибка: не удалось добавить сообщение после очистки очереди: " + newMessage);
         }
     }
 
@@ -38,12 +56,11 @@ public class TelegramMessenger extends TelegramLongPollingBot implements IMessen
             SendMessage message = new SendMessage();
             message.setChatId(currentChatId.toString());
             message.setText(text);
-            message.enableMarkdown(true);
 
             try {
                 execute(message);
             } catch (TelegramApiException e) {
-                e.printStackTrace();
+                System.err.println("Ошибка отправки сообщения в Telegram: " + e.getMessage());
             }
         }
     }

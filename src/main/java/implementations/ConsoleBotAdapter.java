@@ -1,13 +1,13 @@
 package implementations;
 
 import core.CommandProcessor;
-import interfaces.IMessenger;
+import interfaces.Messenger;
 
 public class ConsoleBotAdapter {
     private final CommandProcessor processor;
-    private final IMessenger messenger;
+    private final Messenger messenger;
 
-    public ConsoleBotAdapter(CommandProcessor processor, IMessenger messenger) {
+    public ConsoleBotAdapter(CommandProcessor processor, Messenger messenger) {
         this.processor = processor;
         this.messenger = messenger;
     }
@@ -34,25 +34,25 @@ public class ConsoleBotAdapter {
     }
 
     private void showWelcomeMessage() {
-        String welcomeMessage = """
-            Steam Price Bot - Консольная версия
-            ==========================================
-            Поиск информации об играх Steam
-            ==========================================
-            Доступные команды (без '/'):
-            - search [название] - поиск игры
-            - info [AppID] - информация об игре
-            - help - справка по командам
-            - start - показать приветствие
-            - quit - выход из программы
-            ==========================================
-            Примеры:
-            search Counter-Strike
-            info 730
-            help
-            ==========================================""";
+        StringBuilder welcomeMessage = new StringBuilder();
+        welcomeMessage.append("Steam Price Bot - Консольная версия\n");
+        welcomeMessage.append("==========================================\n");
+        welcomeMessage.append("Поиск информации об играх Steam\n");
+        welcomeMessage.append("==========================================\n");
+        welcomeMessage.append("Доступные команды (без '/'):\n");
+        welcomeMessage.append("- search [название] - поиск игры\n");
+        welcomeMessage.append("- info [AppID] - информация об игре\n");
+        welcomeMessage.append("- help - справка по командам\n");
+        welcomeMessage.append("- start - показать приветствие\n");
+        welcomeMessage.append("- quit - выход из программы\n");
+        welcomeMessage.append("==========================================\n");
+        welcomeMessage.append("Примеры:\n");
+        welcomeMessage.append("search Counter-Strike\n");
+        welcomeMessage.append("info 730\n");
+        welcomeMessage.append("help\n");
+        welcomeMessage.append("==========================================");
 
-        messenger.sendMessage(welcomeMessage);
+        messenger.sendMessage(welcomeMessage.toString());
     }
 
     private String[] parseConsoleInput(String input) {

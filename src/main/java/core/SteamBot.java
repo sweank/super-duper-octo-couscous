@@ -1,14 +1,14 @@
 package core;
 
-import interfaces.IGameDataProvider;
-import interfaces.IMessenger;
+import interfaces.GameDataProvider;
+import interfaces.Messenger;
 
 public class SteamBot {
     private final GameSearchService gameService;
-    private final IMessenger messenger;
+    private final Messenger messenger;
     private boolean running = true;
 
-    public SteamBot(IGameDataProvider dataProvider, IMessenger messenger) {
+    public SteamBot(GameDataProvider dataProvider, Messenger messenger) {
         this.gameService = new GameSearchService(dataProvider);
         this.messenger = messenger;
     }
