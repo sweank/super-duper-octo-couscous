@@ -8,14 +8,12 @@ public class HelpCommand implements Command {
     private final boolean isConsoleMode;
     private final GameSearchService gameService;
 
-    // Конструктор с Map<String, Command>
     public HelpCommand(Map<String, Command> commands, boolean isConsoleMode) {
         this.commands = commands;
         this.isConsoleMode = isConsoleMode;
         this.gameService = null;
     }
 
-    // Альтернативный конструктор с GameSearchService
     public HelpCommand(GameSearchService gameService, boolean isConsoleMode) {
         this.commands = null;
         this.isConsoleMode = isConsoleMode;
@@ -35,10 +33,8 @@ public class HelpCommand implements Command {
     @Override
     public String execute(String argument) {
         if (gameService != null) {
-            // Используем GameSearchService для получения справки
             return gameService.getHelpMessage();
         } else if (commands != null) {
-            // Генерируем справку на основе доступных команд
             return generateHelpFromCommands();
         } else {
             return "Справка недоступна";
