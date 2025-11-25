@@ -8,11 +8,10 @@ public class CommandFactory {
     public static CommandProcessor createCommandProcessor(GameSearchService gameService, boolean isConsoleMode) {
         CommandProcessor processor = new CommandProcessor();
 
-        processor.registerCommand(new StartCommand(gameService));
-        processor.registerCommand(new SearchCommand(gameService));
-        processor.registerCommand(new InfoCommand(gameService));
-
-        processor.registerCommand(new HelpCommand(processor.getCommands(), isConsoleMode));
+        processor.registerCommand("start", new StartCommand(gameService));
+        processor.registerCommand("search", new SearchCommand(gameService));
+        processor.registerCommand("info", new InfoCommand(gameService));
+        processor.registerCommand("help", new HelpCommand(gameService, isConsoleMode));
 
         return processor;
     }

@@ -1,11 +1,11 @@
 package core;
 
-import interfaces.IGameDataProvider;
+import interfaces.GameDataProvider;
 
 public class GameSearchService {
-    private final IGameDataProvider dataProvider;
+    private final GameDataProvider dataProvider;
 
-    public GameSearchService(IGameDataProvider dataProvider) {
+    public GameSearchService(GameDataProvider dataProvider) {
         this.dataProvider = dataProvider;
     }
 
@@ -31,22 +31,19 @@ public class GameSearchService {
     public String getWelcomeMessage() {
         return "Добро пожаловать в Steam Price Bot!\n\n" +
                 "Я помогу вам найти информацию об играх Steam:\n" +
-                "- Поиск по названию\n" +
-                "- Узнать цену\n" +
-                "- Получить подробности\n\n" +
-                "Используйте команды для взаимодействия!";
+                "Поиск по названию\n" +
+                "Узнать цену\n" +
+                "Получить подробности";
     }
 
     public String getHelpMessage() {
-        return "Справка по командам (консольная версия):\n\n" +
-                "- search [название] - поиск игры\n" +
-                "- info [AppID] - информация об игре\n" +
-                "- help - справка по командам\n" +
-                "- start - показать приветствие\n" +
-                "- quit - выход из программы\n\n" +
-                "Примеры использования:\n" +
-                "search Counter-Strike\n" +
-                "info 730\n" +
-                "help";
+        return "Доступные команды:\n\n" +
+                "/search Название - поиск игры\n" +
+                "/info AppID - информация об игре\n" +
+                "/help - эта справка\n" +
+                "/quit - выход\n\n" +
+                "Примеры:\n" +
+                "/search Counter-Strike\n" +
+                "/info 730\n\n";
     }
 }

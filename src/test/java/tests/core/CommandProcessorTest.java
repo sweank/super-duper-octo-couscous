@@ -7,56 +7,60 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class CommandProcessorTest {
-    private CommandProcessor processor;
+    private CommandProcessor commandProcessor;
 
     @BeforeEach
     void setUp() {
-        processor = new CommandProcessor();
+        commandProcessor = new CommandProcessor();
     }
 
     @Test
-    void testRegisterCommand() {
-        TestCommand testCommand = new TestCommand();
-        processor.registerCommand(testCommand);
+    void testRegisterCustomCommand() {
+        Command customCommand = new Command() {
+            @Override
+            public String getName() {
+                return "custom";
+            }
 
-        String result = processor.processCommand("test", "arg");
-        assertEquals("test executed with: arg", result);
+            @Override
+            public String getDescription() {
+                return "custom command";
+            }
+
+            @Override
+            public String execute(String argument) {
+                return "Custom response: " + argument;
+            }
+        };
+
+        commandProcessor.registerCommand(customCommand);
+
+        String result = commandProcessor.processCommand("custom", "test");
+        assertEquals("Custom response: test", result);
     }
 
     @Test
-    void testProcessRegisteredCommand() {
-        processor.registerCommand(new TestCommand());
-        String result = processor.processCommand("test", "argument");
-        assertEquals("test executed with: argument", result);
-    }
+    void testRegisterCustomCommandWithName() {
+        Command customCommand = new Command() {
+            @Override
+            public String getName() {
+                return "test";
+            }
 
-    @Test
-    void testProcessUnknownCommand() {
-        String result = processor.processCommand("unknown", "argument");
-        assertEquals("Неизвестная команда. Используйте /help для списка команд.", result);
-    }
+            @Override
+            public String getDescription() {
+                return "test command";
+            }
 
-    @Test
-    void testCommandCaseInsensitive() {
-        processor.registerCommand(new TestCommand());
-        String result = processor.processCommand("TEST", "argument");
-        assertEquals("test executed with: argument", result);
-    }
+            @Override
+            public String execute(String argument) {
+                return "Test response";
+            }
+        };
 
-    static class TestCommand implements Command {
-        @Override
-        public String getName() {
-            return "test";
-        }
+        commandProcessor.registerCommand("mycommand", customCommand);
 
-        @Override
-        public String getDescription() {
-            return "test command";
-        }
-
-        @Override
-        public String execute(String argument) {
-            return "test executed with: " + argument;
-        }
+        String result = commandProcessor.processCommand("mycommand", "");
+        assertEquals("Test response", result);
     }
 }

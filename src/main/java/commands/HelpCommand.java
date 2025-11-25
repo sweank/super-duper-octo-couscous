@@ -1,14 +1,23 @@
 package commands;
 
+import core.GameSearchService;
 import java.util.Map;
 
 public class HelpCommand implements Command {
     private final Map<String, Command> commands;
     private final boolean isConsoleMode;
+    private final GameSearchService gameService;
 
     public HelpCommand(Map<String, Command> commands, boolean isConsoleMode) {
         this.commands = commands;
         this.isConsoleMode = isConsoleMode;
+        this.gameService = null;
+    }
+
+    public HelpCommand(GameSearchService gameService, boolean isConsoleMode) {
+        this.commands = null;
+        this.isConsoleMode = isConsoleMode;
+        this.gameService = gameService;
     }
 
     @Override
@@ -23,6 +32,16 @@ public class HelpCommand implements Command {
 
     @Override
     public String execute(String argument) {
+        if (gameService != null) {
+            return gameService.getHelpMessage();
+        } else if (commands != null) {
+            return generateHelpFromCommands();
+        } else {
+            return "Справка недоступна";
+        }
+    }
+
+    private String generateHelpFromCommands() {
         if (isConsoleMode) {
             return getConsoleHelp();
         } else {

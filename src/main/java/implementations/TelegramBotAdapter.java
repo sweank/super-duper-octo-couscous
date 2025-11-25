@@ -1,6 +1,7 @@
 package implementations;
 
 import core.CommandProcessor;
+import core.TelegramInputParser;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -8,11 +9,13 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 public class TelegramBotAdapter extends TelegramLongPollingBot {
     private final CommandProcessor processor;
+    private final TelegramInputParser inputParser;
     private String botUsername;
     private String botToken;
 
     public TelegramBotAdapter(CommandProcessor processor, String username, String token) {
         this.processor = processor;
+        this.inputParser = new TelegramInputParser();
         this.botUsername = username;
         this.botToken = token;
     }
@@ -23,22 +26,10 @@ public class TelegramBotAdapter extends TelegramLongPollingBot {
             String messageText = update.getMessage().getText();
             Long chatId = update.getMessage().getChatId();
 
-            String[] parts = parseTelegramInput(messageText);
-            String response = processor.processCommand(parts[0], parts[1]);
+            TelegramInputParser.ParsedCommand parsedCommand = inputParser.parse(messageText);
+            String response = processor.processCommand(parsedCommand.getCommand(), parsedCommand.getArgument());
 
             sendMessageToChat(chatId, response);
-        }
-    }
-
-    private String[] parseTelegramInput(String input) {
-        if (input.startsWith("/search ")) {
-            return new String[]{"search", input.substring(8).trim()};
-        } else if (input.startsWith("/info ")) {
-            return new String[]{"info", input.substring(6).trim()};
-        } else if (input.startsWith("/")) {
-            return new String[]{input.substring(1).trim(), ""};
-        } else {
-            return new String[]{"search", input.trim()};
         }
     }
 

@@ -1,8 +1,10 @@
 package implementations;
 
-import interfaces.IGameDataProvider;
+import interfaces.GameDataProvider;
+import models.GameInfo;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -12,12 +14,19 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SteamApiClient implements IGameDataProvider {
+public class SteamApiClient implements GameDataProvider {
+    private static final int MIN_SEARCH_LENGTH = 2;
+    private static final int MAX_SEARCH_RESULTS = 5;
+    private static final int CONNECT_TIMEOUT_MS = 10000;
+    private static final int READ_TIMEOUT_MS = 10000;
+    private static final int HTTP_SUCCESS_CODE = 200;
+    private static final int PRICE_DIVIDER = 100;
+
     private final ObjectMapper mapper = new ObjectMapper();
 
     @Override
     public String getGameInfo(int appId) throws Exception {
-        String appDetailsUrl = "https://store.steampowered.com/api/appdetails?appids=" + appId + "&l=russian";
+        String appDetailsUrl = "https://store.steampowered.com/api/appdetails?appids=" + appId;
         String response = sendHttpGetRequest(appDetailsUrl);
 
         JsonNode jsonResponse = mapper.readTree(response);
@@ -28,13 +37,14 @@ public class SteamApiClient implements IGameDataProvider {
         }
 
         JsonNode data = gameData.get("data");
-        return formatGameInfo(data);
+        GameInfo gameInfo = parseGameInfo(data);
+        return gameInfo.format();
     }
 
     @Override
     public String searchGame(String gameName) throws Exception {
-        if (gameName.length() < 2) {
-            return "Введите минимум 2 символа для поиска.";
+        if (gameName.length() < MIN_SEARCH_LENGTH) {
+            return "Введите минимум " + MIN_SEARCH_LENGTH + " символа для поиска.";
         }
 
         String encodedName = URLEncoder.encode(gameName, StandardCharsets.UTF_8.toString());
@@ -53,36 +63,63 @@ public class SteamApiClient implements IGameDataProvider {
                 int appId = item.get("id").asInt();
 
                 foundGames.add(name + " (AppID: " + appId + ")");
-                if (foundGames.size() >= 5) break;
+                if (foundGames.size() >= MAX_SEARCH_RESULTS) break;
             }
         }
 
         if (foundGames.isEmpty()) {
             return "Игра '" + gameName + "' не найдена.\n" +
-                    "Попробуйте другое название или используйте команду: /info <AppID>";
+                    "Попробуйте другое название или используйте команду: info <AppID>";
         }
 
-        StringBuilder result = new StringBuilder(" Найдены игры:\n\n");
+        StringBuilder result = new StringBuilder("Найдены игры:\n");
         for (String game : foundGames) {
             result.append(game).append("\n");
         }
-        result.append("\n Используйте команду: `/info <AppID>` для подробной информации");
+        result.append("\nИспользуйте команду: info <AppID> для подробной информации");
         return result.toString();
+    }
+
+    private GameInfo parseGameInfo(JsonNode data) {
+        String name = data.get("name").asText();
+        int appId = data.get("steam_appid").asInt();
+
+        boolean isFree = false;
+        Double finalPrice = null;
+        Double originalPrice = null;
+        String currency = null;
+        Integer discountPercent = null;
+
+        if (data.has("price_overview")) {
+            JsonNode price = data.get("price_overview");
+            finalPrice = price.get("final").asInt() / (double) PRICE_DIVIDER;
+            originalPrice = price.get("initial").asInt() / (double) PRICE_DIVIDER;
+            currency = price.get("currency").asText();
+            discountPercent = price.has("discount_percent") ? price.get("discount_percent").asInt() : null;
+
+            if (discountPercent == null && originalPrice > 0 && finalPrice < originalPrice) {
+                discountPercent = (int) ((1 - finalPrice / originalPrice) * 100);
+            }
+        } else if (data.has("is_free") && data.get("is_free").asBoolean()) {
+            isFree = true;
+        }
+
+        return new GameInfo(name, appId, finalPrice, originalPrice, currency, discountPercent, isFree);
     }
 
     private String sendHttpGetRequest(String urlString) throws Exception {
         URL url = new URL(urlString);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("GET");
-        connection.setConnectTimeout(10000);
-        connection.setReadTimeout(10000);
+        connection.setConnectTimeout(CONNECT_TIMEOUT_MS);
+        connection.setReadTimeout(READ_TIMEOUT_MS);
 
         connection.setRequestProperty("User-Agent",
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
         connection.setRequestProperty("Accept", "application/json");
 
         int responseCode = connection.getResponseCode();
-        if (responseCode != 200) {
+        if (responseCode != HTTP_SUCCESS_CODE) {
             throw new Exception("HTTP ошибка: " + responseCode + " для URL: " + urlString);
         }
 
@@ -96,45 +133,6 @@ public class SteamApiClient implements IGameDataProvider {
                 response.append(line);
             }
             return response.toString();
-        }
-    }
-
-    private String formatGameInfo(JsonNode data) {
-        StringBuilder info = new StringBuilder();
-
-        info.append("Игра: ").append(data.get("name").asText()).append("\n\n");
-
-        if (data.has("price_overview")) {
-            JsonNode price = data.get("price_overview");
-            double finalPrice = price.get("final").asInt() / 100.0;
-            double originalPrice = price.get("initial").asInt() / 100.0;
-            String currency = getCurrencySymbol(price.get("currency").asText());
-
-            if (finalPrice == originalPrice || originalPrice == 0) {
-                info.append(" Цена: ").append(currency).append(finalPrice);
-            } else {
-                int discount = price.get("discount_percent").asInt();
-                info.append(" Цена: ").append(currency).append(finalPrice)
-                        .append(" (скидка ").append(discount).append("%)");
-            }
-        } else {
-            info.append(" Бесплатно");
-        }
-
-        info.append("\n\n https://store.steampowered.com/app/").append(data.get("steam_appid").asInt());
-
-        return info.toString();
-    }
-
-    private String getCurrencySymbol(String currencyCode) {
-        switch (currencyCode) {
-            case "USD": return "$";
-            case "EUR": return "€";
-            case "RUB": return "₽";
-            case "UAH": return "₴";
-            case "KZT": return "₸";
-            case "GBP": return "£";
-            default: return currencyCode + " ";
         }
     }
 }
