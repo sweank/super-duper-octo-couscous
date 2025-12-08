@@ -33,7 +33,7 @@ public class SteamApiClient implements GameDataProvider {
         JsonNode gameData = jsonResponse.get(String.valueOf(appId));
 
         if (gameData == null || !gameData.get("success").asBoolean()) {
-            throw new Exception("Информация об игре не найдена или неверный AppID.");
+            throw new Exception("Игра не найдена. Проверьте AppID.");
         }
 
         JsonNode data = gameData.get("data");
@@ -83,8 +83,11 @@ public class SteamApiClient implements GameDataProvider {
         String name = data.get("name").asText();
         int appId = data.get("steam_appid").asInt();
 
-        String imageUrl = data.has("header_image") ? data.get("header_image").asText() : null;
-        String description = data.has("short_description") ? data.get("short_description").asText() : "";
+        String imageUrl = data.has("header_image") ?
+                data.get("header_image").asText() : null;
+
+        String description = data.has("short_description") ?
+                data.get("short_description").asText() : "";
 
         String releaseDate = "";
         if (data.has("release_date") && data.get("release_date").has("date")) {
@@ -129,7 +132,8 @@ public class SteamApiClient implements GameDataProvider {
             finalPrice = price.get("final").asInt() / (double) PRICE_DIVIDER;
             originalPrice = price.get("initial").asInt() / (double) PRICE_DIVIDER;
             currency = price.get("currency").asText();
-            discountPercent = price.has("discount_percent") ? price.get("discount_percent").asInt() : null;
+            discountPercent = price.has("discount_percent") ?
+                    price.get("discount_percent").asInt() : null;
 
             if (discountPercent == null && originalPrice > 0 && finalPrice < originalPrice) {
                 discountPercent = (int) ((1 - finalPrice / originalPrice) * 100);
@@ -158,8 +162,8 @@ public class SteamApiClient implements GameDataProvider {
 
         try (BufferedReader reader = new BufferedReader(
                 new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
-            StringBuilder response = new StringBuilder();
             String line;
+            StringBuilder response = new StringBuilder();
             while ((line = reader.readLine()) != null) {
                 response.append(line);
             }

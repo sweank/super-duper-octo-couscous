@@ -37,4 +37,16 @@ public class GameSearchService {
                 "• Узнать цену\n" +
                 "• Получить подробности\n\n";
     }
+
+    public String getHelpMessage() {
+        return "Доступные команды:\n\n" +
+                "/search [название] - поиск игры\n" +
+                "/info [AppID] - информация об игре\n" +
+                "/help - эта справка\n" +
+                "/quit - выход\n\n" +
+                "Примеры:\n" +
+                "/search Counter-Strike\n" +
+                "/info 730\n\n" +
+                "Для поиска AppID используйте команду search";
+    }
 }
