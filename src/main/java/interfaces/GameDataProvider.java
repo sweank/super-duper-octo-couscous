@@ -1,6 +1,8 @@
 package interfaces;
 
+import models.GameInfo;
+
 public interface GameDataProvider {
-    String getGameInfo(int appId) throws Exception;
+    GameInfo getGameInfo(int appId) throws Exception;
     String searchGame(String gameName) throws Exception;
 }
