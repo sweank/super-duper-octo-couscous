@@ -14,7 +14,7 @@ public class UnknownCommand implements Command {
 
     @Override
     public String getDescription() {
-        return "неизвестная команда";
+        return "Неизвестная команда";
     }
 
     @Override

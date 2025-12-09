@@ -33,7 +33,7 @@ public class HelpCommand implements Command {
     @Override
     public String execute(String argument) {
         if (gameService != null) {
-            return gameService.getHelpMessage();
+            return getAdaptedHelp();
         } else if (commands != null) {
             return generateHelpFromCommands();
         } else {
@@ -47,6 +47,43 @@ public class HelpCommand implements Command {
         } else {
             return getTelegramHelp();
         }
+    }
+
+    private String getAdaptedHelp() {
+        if (isConsoleMode) {
+            return getConsoleAdaptedHelp();
+        } else {
+            return getTelegramAdaptedHelp();
+        }
+    }
+
+    private String getConsoleAdaptedHelp() {
+        return "Steam Price Bot - Справка\n\n" +
+                "Основные команды:\n" +
+                "search [название] - поиск игры по названию\n" +
+                "info [AppID] - информация об игре\n" +
+                "help - эта справка\n" +
+                "start - начальное меню\n" +
+                "quit - выход из программы\n\n" +
+                "Примеры использования:\n" +
+                "search Counter-Strike\n" +
+                "info 730\n" +
+                "help\n\n" +
+                "Подсказка: для консоли не нужен символ / перед командами";
+    }
+
+    private String getTelegramAdaptedHelp() {
+        return "Steam Price Bot - Справка\n\n" +
+                "Основные команды:\n" +
+                "/search [название] - поиск игры по названию\n" +
+                "/info [AppID] - информация об игре\n" +
+                "/help - эта справка\n" +
+                "/start - начальное меню\n\n" +
+                "Примеры использования:\n" +
+                "/search Counter-Strike\n" +
+                "/info 730\n" +
+                "/help\n\n" +
+                "Подсказка: также используйте кнопки внизу экрана";
     }
 
     private String getConsoleHelp() {

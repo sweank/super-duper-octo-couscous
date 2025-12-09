@@ -1,6 +1,7 @@
 package core;
 
 import interfaces.GameDataProvider;
+import models.GameInfo;
 
 public class GameSearchService {
     private final GameDataProvider dataProvider;
@@ -22,7 +23,8 @@ public class GameSearchService {
 
     public String getGameInfo(int appId) {
         try {
-            return dataProvider.getGameInfo(appId);
+            GameInfo info = dataProvider.getGameInfo(appId);
+            return info.formatForConsole();
         } catch (Exception e) {
             return "Ошибка при получении информации: " + e.getMessage();
         }
@@ -31,19 +33,20 @@ public class GameSearchService {
     public String getWelcomeMessage() {
         return "Добро пожаловать в Steam Price Bot!\n\n" +
                 "Я помогу вам найти информацию об играх Steam:\n" +
-                "Поиск по названию\n" +
-                "Узнать цену\n" +
-                "Получить подробности";
+                "• Поиск по названию\n" +
+                "• Узнать цену\n" +
+                "• Получить подробности\n\n";
     }
 
     public String getHelpMessage() {
         return "Доступные команды:\n\n" +
-                "/search Название - поиск игры\n" +
-                "/info AppID - информация об игре\n" +
+                "/search [название] - поиск игры\n" +
+                "/info [AppID] - информация об игре\n" +
                 "/help - эта справка\n" +
                 "/quit - выход\n\n" +
                 "Примеры:\n" +
                 "/search Counter-Strike\n" +
-                "/info 730\n\n";
+                "/info 730\n\n" +
+                "Для поиска AppID используйте команду search";
     }
 }

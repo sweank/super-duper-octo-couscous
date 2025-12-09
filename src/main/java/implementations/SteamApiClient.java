@@ -25,20 +25,19 @@ public class SteamApiClient implements GameDataProvider {
     private final ObjectMapper mapper = new ObjectMapper();
 
     @Override
-    public String getGameInfo(int appId) throws Exception {
-        String appDetailsUrl = "https://store.steampowered.com/api/appdetails?appids=" + appId;
+    public GameInfo getGameInfo(int appId) throws Exception {
+        String appDetailsUrl = "https://store.steampowered.com/api/appdetails?appids=" + appId + "&l=russian";
         String response = sendHttpGetRequest(appDetailsUrl);
 
         JsonNode jsonResponse = mapper.readTree(response);
         JsonNode gameData = jsonResponse.get(String.valueOf(appId));
 
         if (gameData == null || !gameData.get("success").asBoolean()) {
-            return "Информация об игре не найдена. Проверьте AppID.";
+            throw new Exception("Игра не найдена. Проверьте AppID.");
         }
 
         JsonNode data = gameData.get("data");
-        GameInfo gameInfo = parseGameInfo(data);
-        return gameInfo.format();
+        return parseGameInfo(data);
     }
 
     @Override
@@ -80,55 +79,91 @@ public class SteamApiClient implements GameDataProvider {
         return result.toString();
     }
 
-    private GameInfo parseGameInfo(JsonNode data) {
+    public GameInfo parseGameInfo(JsonNode data) {
         String name = data.get("name").asText();
         int appId = data.get("steam_appid").asInt();
 
-        boolean isFree = false;
+        String imageUrl = data.has("header_image") ?
+                data.get("header_image").asText() : null;
+
+        String description = data.has("short_description") ?
+                data.get("short_description").asText() : "";
+
+        String releaseDate = "";
+        if (data.has("release_date") && data.get("release_date").has("date")) {
+            releaseDate = data.get("release_date").get("date").asText();
+        }
+
+        String developers = "";
+        if (data.has("developers")) {
+            List<String> devList = new ArrayList<>();
+            for (JsonNode dev : data.get("developers")) {
+                devList.add(dev.asText());
+            }
+            developers = String.join(", ", devList);
+        }
+
+        String publishers = "";
+        if (data.has("publishers")) {
+            List<String> pubList = new ArrayList<>();
+            for (JsonNode pub : data.get("publishers")) {
+                pubList.add(pub.asText());
+            }
+            publishers = String.join(", ", pubList);
+        }
+
+        String[] categories = new String[0];
+        if (data.has("categories")) {
+            List<String> catList = new ArrayList<>();
+            for (JsonNode cat : data.get("categories")) {
+                catList.add(cat.get("description").asText());
+            }
+            categories = catList.toArray(new String[0]);
+        }
+
+        boolean isFree = data.has("is_free") && data.get("is_free").asBoolean();
         Double finalPrice = null;
         Double originalPrice = null;
         String currency = null;
         Integer discountPercent = null;
 
-        if (data.has("price_overview")) {
+        if (!isFree && data.has("price_overview")) {
             JsonNode price = data.get("price_overview");
             finalPrice = price.get("final").asInt() / (double) PRICE_DIVIDER;
             originalPrice = price.get("initial").asInt() / (double) PRICE_DIVIDER;
             currency = price.get("currency").asText();
-            discountPercent = price.has("discount_percent") ? price.get("discount_percent").asInt() : null;
+            discountPercent = price.has("discount_percent") ?
+                    price.get("discount_percent").asInt() : null;
 
             if (discountPercent == null && originalPrice > 0 && finalPrice < originalPrice) {
                 discountPercent = (int) ((1 - finalPrice / originalPrice) * 100);
             }
-        } else if (data.has("is_free") && data.get("is_free").asBoolean()) {
-            isFree = true;
         }
 
-        return new GameInfo(name, appId, finalPrice, originalPrice, currency, discountPercent, isFree);
+        return new GameInfo(name, appId, finalPrice, originalPrice,
+                currency, discountPercent, isFree, imageUrl,
+                description, releaseDate, developers,
+                publishers, categories);
     }
 
-    private String sendHttpGetRequest(String urlString) throws Exception {
+    public String sendHttpGetRequest(String urlString) throws Exception {
         URL url = new URL(urlString);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("GET");
         connection.setConnectTimeout(CONNECT_TIMEOUT_MS);
         connection.setReadTimeout(READ_TIMEOUT_MS);
-
-        connection.setRequestProperty("User-Agent",
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
+        connection.setRequestProperty("User-Agent", "Mozilla/5.0");
         connection.setRequestProperty("Accept", "application/json");
 
         int responseCode = connection.getResponseCode();
         if (responseCode != HTTP_SUCCESS_CODE) {
-            throw new Exception("HTTP ошибка: " + responseCode + " для URL: " + urlString);
+            throw new Exception("HTTP ошибка: " + responseCode);
         }
 
         try (BufferedReader reader = new BufferedReader(
                 new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
-
             String line;
             StringBuilder response = new StringBuilder();
-
             while ((line = reader.readLine()) != null) {
                 response.append(line);
             }

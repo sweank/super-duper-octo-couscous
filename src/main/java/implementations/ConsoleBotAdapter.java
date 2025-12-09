@@ -32,7 +32,6 @@ public class ConsoleBotAdapter {
             messenger.sendMessage(response);
         }
     }
-
     private void showWelcomeMessage() {
         StringBuilder welcomeMessage = new StringBuilder();
         welcomeMessage.append("Steam Price Bot - Консольная версия\n");

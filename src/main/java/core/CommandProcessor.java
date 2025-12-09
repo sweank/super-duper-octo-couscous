@@ -23,6 +23,7 @@ public class CommandProcessor {
 
     public String processCommand(String command, String argument) {
         Command cmd = commands.get(command.toLowerCase());
+
         if (cmd != null) {
             return cmd.execute(argument);
         }
