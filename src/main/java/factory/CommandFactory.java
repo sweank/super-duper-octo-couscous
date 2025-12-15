@@ -1,0 +1,27 @@
+package factory;
+
+import commands.*;
+import core.GameSearchService;
+import core.CommandProcessor;
+import database.DatabaseHandler;
+import implementations.SteamApiClient;
+import implementations.TelegramGameService;
+
+public class CommandFactory {
+    public static CommandProcessor createCommandProcessor(GameSearchService gameService,
+                                                          DatabaseHandler dbHandler,
+                                                          boolean isConsoleMode) {
+        CommandProcessor processor = new CommandProcessor();
+
+        SteamApiClient steamClient = new SteamApiClient();
+        TelegramGameService telegramGameService = new TelegramGameService(steamClient, dbHandler);
+
+        processor.registerCommand("start", new StartCommand(gameService));
+        processor.registerCommand("search", new SearchCommand(gameService));
+        processor.registerCommand("info", new InfoCommand(gameService, telegramGameService, isConsoleMode));
+        processor.registerCommand("help", new HelpCommand(gameService, isConsoleMode));
+        processor.registerCommand("history", new HistoryCommand(gameService));
+
+        return processor;
+    }
+}
