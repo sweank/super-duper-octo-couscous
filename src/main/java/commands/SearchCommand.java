@@ -20,10 +20,10 @@ public class SearchCommand implements Command {
     }
 
     @Override
-    public String execute(String argument) {
+    public String execute(long userId, String argument) {
         if (argument == null || argument.trim().isEmpty()) {
             return "Укажите название игры после команды /search";
         }
-        return gameService.searchGame(argument.trim());
+        return gameService.searchGame(userId, argument.trim());
     }
 }

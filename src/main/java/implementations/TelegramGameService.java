@@ -1,17 +1,23 @@
 package implementations;
 
+import database.DatabaseHandler;
 import models.GameInfo;
 
 public class TelegramGameService {
     private final SteamApiClient steamApiClient;
+    private final DatabaseHandler dbHandler;
 
-    public TelegramGameService(SteamApiClient steamApiClient) {
+    public TelegramGameService(SteamApiClient steamApiClient, DatabaseHandler dbHandler) {
         this.steamApiClient = steamApiClient;
+        this.dbHandler = dbHandler;
     }
 
-    public String getGameInfoWithImage(int appId) throws Exception {
-        GameInfo gameInfo = steamApiClient.getGameInfo(appId);
+    public String getGameInfoWithImage(long userId, int appId) throws Exception {
+        if (dbHandler != null) {
+            dbHandler.saveSearch(userId, String.valueOf(appId), "INFO");
+        }
 
+        GameInfo gameInfo = steamApiClient.getGameInfo(appId);
         String imageUrl = gameInfo.getImageUrl();
 
         if (imageUrl != null && !imageUrl.isEmpty()) {
@@ -21,7 +27,10 @@ public class TelegramGameService {
         }
     }
 
-    public String getGameInfoForTelegram(int appId) throws Exception {
+    public String getGameInfoForTelegram(long userId, int appId) throws Exception {
+        if (dbHandler != null) {
+            dbHandler.saveSearch(userId, String.valueOf(appId), "INFO");
+        }
         GameInfo gameInfo = steamApiClient.getGameInfo(appId);
         return gameInfo.formatForTelegram();
     }

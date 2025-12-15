@@ -21,37 +21,30 @@ class CommandProcessorTest {
         }
 
         @Override
-        public String execute(String argument) {
-            return "EXECUTED: " + argument;
+        public String execute(long userId, String argument) {
+            return "USER:" + userId + " EXECUTED: " + argument;
         }
     }
 
     @BeforeEach
     void setUp() {
         processor = new CommandProcessor();
-        processor.registerCommand(new StubCommand());
+
+        processor.registerCommand("test", new StubCommand());
     }
 
     @Test
-    void testProcessExistingCommandCaseInsensitive() {
+    void testProcessExistingCommand() {
+        String result = processor.processCommand(555L, "TEST", "arg123");
 
-        String result = processor.processCommand("TEST", "arg123");
-
-        if (!result.equals("EXECUTED: arg123")) {
-            System.out.println("!!! ОШИБКА ТЕСТА !!!");
-            System.out.println("Ожидали: EXECUTED: arg123");
-            System.out.println("Получили: " + result);
-            System.out.println("Если вы видите кракозябры выше, значит сработала UnknownCommand.");
-        }
-
-        assertEquals("EXECUTED: arg123", result);
+        assertEquals("USER:555 EXECUTED: arg123", result);
     }
 
     @Test
     void testProcessUnknownCommand() {
-        String result = processor.processCommand("abrakadabra", "");
+        String result = processor.processCommand(1L, "abrakadabra", "");
 
         assertNotEquals("EXECUTED: ", result);
-        assertNotNull(result);
+        assertTrue(result.contains("Неизвестная команда"));
     }
 }

@@ -9,22 +9,18 @@ public class TelegramInputParser {
 
         String trimmedInput = input.trim();
 
-        if (trimmedInput.startsWith("/search ")) {
-            String argument = trimmedInput.substring(8).trim();
-            return new ParsedCommand("search", argument);
-        } else if (trimmedInput.startsWith("/info ")) {
-            String argument = trimmedInput.substring(6).trim();
-            return new ParsedCommand("info", argument);
-        } else if (trimmedInput.equals("/help")) {
-            return new ParsedCommand("help", "");
-        } else if (trimmedInput.equals("/start")) {
-            return new ParsedCommand("start", "");
-        } else if (trimmedInput.startsWith("/")) {
-            String command = trimmedInput.substring(1).trim();
-            return new ParsedCommand(command, "");
-        } else {
-            return new ParsedCommand("search", trimmedInput);
+        if (trimmedInput.startsWith("/")) {
+            String withoutSlash = trimmedInput.substring(1);
+            String[] parts = withoutSlash.split(" ", 2);
+
+            String command = parts[0].toLowerCase();
+            String argument = parts.length > 1 ? parts[1].trim() : "";
+
+            return new ParsedCommand(command, argument);
         }
+
+
+        return new ParsedCommand("search", trimmedInput);
     }
 
     public static class ParsedCommand {

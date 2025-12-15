@@ -9,11 +9,6 @@ public class CommandProcessor {
     private final Command unknownCommand;
 
     public CommandProcessor(GameSearchService gameService, boolean isConsoleMode) {
-        commands.put("search", new SearchCommand(gameService));
-        commands.put("info", new InfoCommand(gameService));
-        commands.put("help", new HelpCommand(gameService, isConsoleMode));
-        commands.put("start", new StartCommand(gameService));
-
         this.unknownCommand = new UnknownCommand(isConsoleMode);
     }
 
@@ -21,20 +16,16 @@ public class CommandProcessor {
         this.unknownCommand = new UnknownCommand(false);
     }
 
-    public String processCommand(String command, String argument) {
-        Command cmd = commands.get(command.toLowerCase());
+    public String processCommand(long userId, String commandName, String argument) {
+        Command cmd = commands.get(commandName.toLowerCase());
 
         if (cmd != null) {
-            return cmd.execute(argument);
+            return cmd.execute(userId, argument);
         }
-        return unknownCommand.execute(argument);
+        return unknownCommand.execute(userId, argument);
     }
 
     public void registerCommand(String name, Command command) {
         commands.put(name.toLowerCase(), command);
-    }
-
-    public void registerCommand(Command command) {
-        commands.put(command.getName().toLowerCase(), command);
     }
 }

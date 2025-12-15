@@ -4,7 +4,11 @@ import interfaces.Messenger;
 import java.util.Scanner;
 
 public class ConsoleMessenger implements Messenger {
-    private final Scanner scanner = new Scanner(System.in);
+    private final Scanner scanner;
+
+    public ConsoleMessenger() {
+        this.scanner = new Scanner(System.in);
+    }
 
     @Override
     public void sendMessage(String text) {
@@ -14,6 +18,9 @@ public class ConsoleMessenger implements Messenger {
     @Override
     public String receiveMessage() {
         System.out.print("> ");
-        return scanner.nextLine();
+        if (scanner.hasNextLine()) {
+            return scanner.nextLine();
+        }
+        return "";
     }
 }

@@ -5,16 +5,16 @@ import org.junit.jupiter.api.Test;
 import stubs.StubGameSearchService;
 import static org.junit.jupiter.api.Assertions.*;
 
-class StartCommandTest {
+class HistoryCommandTest {
 
     @Test
     void testExecute() {
         GameSearchService stubService = new StubGameSearchService();
-        StartCommand command = new StartCommand(stubService);
+        HistoryCommand command = new HistoryCommand(stubService);
 
-        String result = command.execute(1L, "");
+        String result = command.execute(123L, "dota");
 
-        assertEquals("start", command.getName());
-        assertEquals("STUB_WELCOME", result);
+        assertEquals("history", command.getName());
+        assertEquals("STUB_HISTORY: dota", result);
     }
 }

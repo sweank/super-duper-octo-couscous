@@ -12,7 +12,7 @@ class SearchCommandTest {
         GameSearchService stubService = new StubGameSearchService();
         SearchCommand command = new SearchCommand(stubService);
 
-        String result = command.execute("Half-Life");
+        String result = command.execute(1L, "Half-Life");
 
         assertEquals("STUB_SEARCH: Half-Life", result);
     }
@@ -21,10 +21,10 @@ class SearchCommandTest {
     void testExecuteEmptyArgument() {
         SearchCommand command = new SearchCommand(new StubGameSearchService());
 
-        String result = command.execute("");
+        String result = command.execute(1L, "");
         assertTrue(result.contains("Укажите название игры"));
 
-        result = command.execute(null);
+        result = command.execute(1L, null);
         assertTrue(result.contains("Укажите название игры"));
     }
 }

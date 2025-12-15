@@ -31,7 +31,7 @@ public class HelpCommand implements Command {
     }
 
     @Override
-    public String execute(String argument) {
+    public String execute(long userId, String argument) {
         if (gameService != null) {
             return getAdaptedHelp();
         } else if (commands != null) {
@@ -62,12 +62,14 @@ public class HelpCommand implements Command {
                 "Основные команды:\n" +
                 "search [название] - поиск игры по названию\n" +
                 "info [AppID] - информация об игре\n" +
+                "history - история ваших запросов\n" +
                 "help - эта справка\n" +
                 "start - начальное меню\n" +
                 "quit - выход из программы\n\n" +
                 "Примеры использования:\n" +
                 "search Counter-Strike\n" +
                 "info 730\n" +
+                "history\n" +
                 "help\n\n" +
                 "Подсказка: для консоли не нужен символ / перед командами";
     }
@@ -77,11 +79,13 @@ public class HelpCommand implements Command {
                 "Основные команды:\n" +
                 "/search [название] - поиск игры по названию\n" +
                 "/info [AppID] - информация об игре\n" +
+                "/history - история поиска\n" +
                 "/help - эта справка\n" +
                 "/start - начальное меню\n\n" +
                 "Примеры использования:\n" +
                 "/search Counter-Strike\n" +
                 "/info 730\n" +
+                "/history\n" +
                 "/help\n\n" +
                 "Подсказка: также используйте кнопки внизу экрана";
     }
@@ -90,11 +94,13 @@ public class HelpCommand implements Command {
         StringBuilder helpText = new StringBuilder();
         helpText.append("Справка по командам (консольная версия):\n\n");
 
-        commands.values().forEach(command -> {
-            helpText.append("- ").append(command.getName())
-                    .append(" - ").append(command.getDescription())
-                    .append("\n");
-        });
+        if (commands != null) {
+            commands.values().forEach(command -> {
+                helpText.append("- ").append(command.getName())
+                        .append(" - ").append(command.getDescription())
+                        .append("\n");
+            });
+        }
 
         helpText.append("\nПримеры использования:\n");
         helpText.append("search Counter-Strike\n");
@@ -110,11 +116,13 @@ public class HelpCommand implements Command {
         helpText.append("Steam Price Bot\n\n");
         helpText.append("Доступные команды:\n\n");
 
-        commands.values().forEach(command -> {
-            helpText.append("- /").append(command.getName())
-                    .append(" - ").append(command.getDescription())
-                    .append("\n");
-        });
+        if (commands != null) {
+            commands.values().forEach(command -> {
+                helpText.append("- /").append(command.getName())
+                        .append(" - ").append(command.getDescription())
+                        .append("\n");
+            });
+        }
 
         helpText.append("\nПримеры использования:\n");
         helpText.append("/search Counter-Strike\n");

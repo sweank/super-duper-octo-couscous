@@ -18,7 +18,7 @@ public class UnknownCommand implements Command {
     }
 
     @Override
-    public String execute(String argument) {
+    public String execute(long userId, String argument) {
         if (isConsoleMode) {
             return "Неизвестная команда. Используйте 'help' для списка команд";
         } else {

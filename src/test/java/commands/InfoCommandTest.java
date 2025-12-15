@@ -11,7 +11,7 @@ class InfoCommandTest {
     void testConsoleModeExecution() {
         InfoCommand command = new InfoCommand(new StubGameSearchService());
 
-        String result = command.execute("730");
+        String result = command.execute(1L, "730");
 
         assertEquals("STUB_INFO: 730", result);
     }
@@ -24,7 +24,7 @@ class InfoCommandTest {
                 false
         );
 
-        String result = command.execute("730");
+        String result = command.execute(1L, "730");
 
         assertEquals("STUB_TG_IMAGE: 730", result);
     }
@@ -33,10 +33,10 @@ class InfoCommandTest {
     void testInvalidInput() {
         InfoCommand command = new InfoCommand(new StubGameSearchService());
 
-        String result = command.execute("abc");
+        String result = command.execute(1L, "abc");
         assertEquals("AppID должен быть числом!", result);
 
-        result = command.execute("");
+        result = command.execute(1L, "");
         assertTrue(result.contains("Укажите AppID"));
     }
 }

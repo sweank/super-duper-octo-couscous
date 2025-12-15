@@ -17,7 +17,7 @@ class HelpCommandTest {
 
         HelpCommand helpCommand = new HelpCommand(commands, true);
 
-        String result = helpCommand.execute("");
+        String result = helpCommand.execute(1L, "");
 
         assertTrue(result.contains("Справка по командам (консольная версия)"));
         assertTrue(result.contains("- start"));
@@ -25,13 +25,12 @@ class HelpCommandTest {
 
     @Test
     void testTelegramHelp() {
-
         HelpCommand helpCommand = new HelpCommand(new StubGameSearchService(), false);
 
-        String result = helpCommand.execute("");
+        String result = helpCommand.execute(1L, "");
 
         assertTrue(result.contains("Steam Price Bot - Справка"));
         assertTrue(result.contains("/search"));
-        assertTrue(result.contains("Подсказка: также используйте кнопки"));
+        assertTrue(result.contains("/history"));
     }
 }

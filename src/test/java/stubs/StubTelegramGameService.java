@@ -5,16 +5,16 @@ import implementations.TelegramGameService;
 public class StubTelegramGameService extends TelegramGameService {
 
     public StubTelegramGameService() {
-        super(null);
+        super(null, null);
     }
 
     @Override
-    public String getGameInfoWithImage(int appId) {
+    public String getGameInfoWithImage(long userId, int appId) {
         return "STUB_TG_IMAGE: " + appId;
     }
 
     @Override
-    public String getGameInfoForTelegram(int appId) {
+    public String getGameInfoForTelegram(long userId, int appId) {
         return "STUB_TG_TEXT: " + appId;
     }
 }

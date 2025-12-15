@@ -31,7 +31,7 @@ public class InfoCommand implements Command {
     }
 
     @Override
-    public String execute(String argument) {
+    public String execute(long userId, String argument) {
         if (argument == null || argument.trim().isEmpty()) {
             return "Укажите AppID после команды /info";
         }
@@ -40,16 +40,13 @@ public class InfoCommand implements Command {
             int appId = Integer.parseInt(argument.trim());
 
             if (isConsoleMode || telegramGameService == null) {
-
-                return gameService.getGameInfo(appId);
+                return gameService.getGameInfo(userId, appId);
             } else {
-
                 try {
-                    return telegramGameService.getGameInfoWithImage(appId);
+                    return telegramGameService.getGameInfoWithImage(userId, appId);
                 } catch (Exception e) {
                     System.err.println("Ошибка при получении изображения: " + e.getMessage());
-
-                    return telegramGameService.getGameInfoForTelegram(appId);
+                    return telegramGameService.getGameInfoForTelegram(userId, appId);
                 }
             }
         } catch (NumberFormatException e) {

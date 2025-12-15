@@ -20,7 +20,7 @@ public class StartCommand implements Command {
     }
 
     @Override
-    public String execute(String argument) {
+    public String execute(long userId, String argument) {
         return gameService.getWelcomeMessage();
     }
 }

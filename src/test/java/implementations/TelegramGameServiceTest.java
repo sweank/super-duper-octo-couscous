@@ -1,6 +1,5 @@
 package implementations;
 
-
 import models.GameInfo;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -20,9 +19,9 @@ class TelegramGameServiceTest {
     @Test
     void testGetGameInfoWithImage() throws Exception {
         StubSteamApiClient stubClient = new StubSteamApiClient();
-        TelegramGameService service = new TelegramGameService(stubClient);
+        TelegramGameService service = new TelegramGameService(stubClient, null);
 
-        String result = service.getGameInfoWithImage(123);
+        String result = service.getGameInfoWithImage(1L, 123);
 
         assertTrue(result.contains("IMAGE_URL:http://image.url"));
         assertTrue(result.contains("*Test Game*"));
@@ -31,9 +30,9 @@ class TelegramGameServiceTest {
     @Test
     void testGetGameInfoForTelegram() throws Exception {
         StubSteamApiClient stubClient = new StubSteamApiClient();
-        TelegramGameService service = new TelegramGameService(stubClient);
+        TelegramGameService service = new TelegramGameService(stubClient, null);
 
-        String result = service.getGameInfoForTelegram(123);
+        String result = service.getGameInfoForTelegram(1L, 123);
 
         assertFalse(result.contains("IMAGE_URL:"));
         assertTrue(result.contains("*Test Game*"));
